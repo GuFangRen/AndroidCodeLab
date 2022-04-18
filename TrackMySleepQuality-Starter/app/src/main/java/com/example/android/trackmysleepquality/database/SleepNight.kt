@@ -16,3 +16,39 @@
 
 package com.example.android.trackmysleepquality.database
 
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+
+@Database(entities = [SleepNight::class], version = 1, exportSchema = false)
+abstract class SleepDatabase : RoomDatabase(){
+    //需要提供Tao
+    abstract val sleepDatabaseDao: SleepDatabaseDao //??抽象属性啥意思？难道是强迫子类重新申明？
+
+    //实现一个单例模式，全局一个SleepDatabase
+    companion object {
+        @Volatile
+        private var INSTANCE: SleepDatabase? = null
+        fun getInstance(context: Context): SleepDatabase {
+            synchronized(this) {
+                var instance = INSTANCE
+
+                if (instance == null) {
+                    instance = Room.databaseBuilder(
+                            // 用本抽象类作为参数 ，去实例化一个Room的database对象，
+                            // 则该对象能访问到抽象类的Tao?
+                            context.applicationContext,
+                            SleepDatabase::class.java,
+                            "sleep_history_database"
+                    )
+                            .fallbackToDestructiveMigration()
+                            .build()
+                    INSTANCE = instance
+                }
+                return instance
+            }
+        }
+    }
+}
+
